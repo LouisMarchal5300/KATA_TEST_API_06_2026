@@ -5,7 +5,10 @@ import com.booking.client.BookingApiClient;
 import com.booking.config.ApiConfig;
 import com.booking.context.TestContext;
 import com.booking.model.dto.AuthResponse;
+import com.booking.model.dto.HealthStatus;
 import io.cucumber.java.After;
+import io.cucumber.java.BeforeAll;
+import io.restassured.response.Response;
 
 /**
  * Cleans up any booking created during a scenario, so the test suite
@@ -21,6 +24,19 @@ public class Hooks {
         this.context = context;
         this.bookingApiClient = bookingApiClient;
         this.authApiClient = authApiClient;
+    }
+
+    @BeforeAll
+    public static void checkApiIsUp() {
+        Response response = new BookingApiClient().health();
+        if (response.getStatusCode() != 200) {
+            throw new IllegalStateException("Booking API health check returned status " + response.getStatusCode());
+        }
+
+        HealthStatus status = response.as(HealthStatus.class);
+        if (!"UP".equals(status.getStatus())) {
+            throw new IllegalStateException("Booking API is not up: " + status.getStatus());
+        }
     }
 
     @After
