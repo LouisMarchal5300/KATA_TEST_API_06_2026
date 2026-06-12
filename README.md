@@ -65,3 +65,33 @@ This kata has the purpose to evaluate both your technical skills as well as your
 * Quality of the codebase (design patterns, structure, code quality, …)
 * Use of Rest-Assured and Cucumber features
 * Commit history and progress demonstration
+
+---
+
+## Test Framework
+
+### Running the tests
+```
+mvn clean test
+```
+This generates the model/DTO sources, compiles the project and runs the full Cucumber suite against the live API at https://automationintesting.online/api. A Cucumber HTML/JSON report is written to `target/cucumber-reports/`.
+
+### Architecture & design patterns
+The framework lives under `src/test/java/com/booking`:
+
+* **Test Data Builder** (`builders/BookingTestDataBuilder`) — fluent builder providing a valid default booking (`aBooking()`), with `.withX(...)` overrides used to construct invalid payloads for negative tests.
+* **Service/Facade objects** (`client/AuthApiClient`, `client/BookingApiClient`) — wrap all Rest-Assured calls for the `/auth` and `/booking` resources (login, create/get/update/patch/delete booking, health check), hiding endpoint paths, headers and cookies from the step definitions.
+* **Singleton configuration** (`config/ApiConfig`) — loads `src/test/resources/config.properties` once and builds the shared Rest-Assured `RequestSpecification` (base URI, content type, Jackson `ObjectMapper` configured with `JavaTimeModule` for `LocalDate` fields).
+* **Shared scenario context via dependency injection** (`context/TestContext`, wired through `cucumber-picocontainer`) — carries the auth token, the last created booking id/data, and the last `Response` between step definitions within a scenario.
+* **Hooks** (`hooks/Hooks`) — `@After` hook that deletes any booking created during a scenario, keeping the live API clean between runs.
+
+Feature files live in `src/test/resources/features/` and cover the booking API health check, authentication (valid/invalid login), booking creation (valid data, validation errors, conflicting dates), and the full booking lifecycle (read/update/delete, with and without authentication, plus a check that `PATCH` is not supported by the deployed API).
+
+### Code generation plugins
+Two Maven plugins generate model/DTO classes at `generate-test-sources`, registered as test source roots via `build-helper-maven-plugin`:
+
+* **`openapi-generator-maven-plugin`** generates the `Booking` and `BookingDates` model classes (`com.booking.model`) directly from the OpenAPI spec at `src/test/resources/spec/booking.yaml`, used both as the request body for create/update and to deserialize responses.
+* **`jsonschema2pojo-maven-plugin`** generates the remaining request/response DTOs (`com.booking.model.dto`) from hand-written JSON Schemas in `src/test/resources/schemas/`: `AuthRequest`, `AuthResponse`, `BookingWrapperResponse`, `ValidationErrorResponse`, `ErrorResponse`, `HealthStatus`, and `PatchBookingRequest`. `BookingWrapperResponse` reuses the generated `Booking` type via `existingJavaType` so both plugins' output compose cleanly.
+
+### Notes on the live API
+The deployed instance at automationintesting.online behaves slightly differently from a generic Restful-Booker spec in a few places that the tests assert on directly: booking creation returns `201` with a flat `{...booking fields, bookingid}` body, updating a booking with overlapping dates for the same room returns `409 Conflict`, requests without an auth token return `403 Forbidden`, deleting a booking returns `202 Accepted`, and `PATCH /booking/{id}` is not implemented (`405 Method Not Allowed`).
