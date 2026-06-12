@@ -53,11 +53,14 @@ public class BookingLifecycleSteps {
 
     @When("I update the booking with new details using a valid token")
     public void iUpdateTheBookingWithNewDetailsUsingAValidToken() {
+        // Shift the dates a year past the booking's own current dates so the
+        // update doesn't self-conflict with its existing reservation.
+        LocalDate newCheckin = context.getCreatedBooking().getBookingdates().getCheckin().plusYears(1);
         Booking updated = aBooking()
                 .withFirstname("Updated")
                 .withLastname("Guest")
-                .withCheckin(LocalDate.now().plusDays(10))
-                .withCheckout(LocalDate.now().plusDays(12))
+                .withCheckin(newCheckin)
+                .withCheckout(newCheckin.plusDays(2))
                 .build();
         context.setLastResponse(bookingApiClient.update(context.getCreatedBookingId(), updated, context.getAuthToken()));
         context.setCreatedBooking(updated);

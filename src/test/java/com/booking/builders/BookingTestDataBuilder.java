@@ -4,6 +4,7 @@ import com.booking.model.Booking;
 import com.booking.model.BookingDates;
 
 import java.time.LocalDate;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Test Data Builder for {@link Booking}. Provides sensible valid defaults so
@@ -15,8 +16,10 @@ public class BookingTestDataBuilder {
     private String firstname = "Jim";
     private String lastname = "Brown";
     private boolean depositpaid = true;
-    private LocalDate checkin = LocalDate.now().plusDays(1);
-    private LocalDate checkout = LocalDate.now().plusDays(3);
+    // Randomized so concurrent/repeated test runs don't collide on the same
+    // room/date range as bookings left over from a previous run.
+    private LocalDate checkin = LocalDate.now().plusDays(1 + ThreadLocalRandom.current().nextInt(10000));
+    private LocalDate checkout = checkin.plusDays(2);
     private String email = "jim.brown@example.com";
     private String phone = "01234567890";
 
