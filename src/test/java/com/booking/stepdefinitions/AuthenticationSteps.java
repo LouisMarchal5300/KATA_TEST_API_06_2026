@@ -2,7 +2,7 @@ package com.booking.stepdefinitions;
 
 import com.booking.client.AuthApiClient;
 import com.booking.context.TestContext;
-import com.booking.model.dto.AuthResponse;
+import com.booking.mappers.AuthMapper;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
@@ -26,7 +26,7 @@ public class AuthenticationSteps {
     public void iAmAuthenticatedAsWithPassword(String username, String password) {
         Response response = authApiClient.login(username, password);
         response.then().statusCode(200);
-        context.setAuthToken(response.as(AuthResponse.class).getToken());
+        context.setAuthToken(AuthMapper.tokenFromResponse(response));
     }
 
     @When("I authenticate with username {string} and password {string}")
@@ -37,9 +37,9 @@ public class AuthenticationSteps {
     @Then("the authentication is successful and a token is returned")
     public void theAuthenticationIsSuccessfulAndATokenIsReturned() {
         context.getLastResponse().then().statusCode(200);
-        AuthResponse response = context.getLastResponse().as(AuthResponse.class);
-        assertThat(response.getToken(), not(blankOrNullString()));
-        context.setAuthToken(response.getToken());
+        String token = AuthMapper.tokenFromResponse(context.getLastResponse());
+        assertThat(token, not(blankOrNullString()));
+        context.setAuthToken(token);
     }
 
     @Then("the authentication fails with status code {int}")

@@ -19,4 +19,11 @@ public final class BookingMapper {
     public static Booking fromWrapperResponse(Response response) {
         return response.as(BookingWrapperResponse.class).getBooking();
     }
+
+    /**
+     * Extracts the {@code bookingid} field from a create/get booking response.
+     */
+    public static Integer bookingIdFromResponse(Response response) {
+        return response.jsonPath().getInt("bookingid");
+    }
 }

@@ -3,6 +3,7 @@ package com.booking.stepdefinitions;
 import com.booking.builders.BookingTestDataBuilder;
 import com.booking.client.BookingApiClient;
 import com.booking.context.TestContext;
+import com.booking.mappers.BookingMapper;
 import com.booking.model.Booking;
 import com.booking.model.dto.ErrorResponse;
 import com.booking.model.dto.ValidationErrorResponse;
@@ -69,7 +70,7 @@ public class BookingCreationSteps {
     @And("the response contains the created booking details")
     public void theResponseContainsTheCreatedBookingDetails() {
         Booking created = context.getLastResponse().as(Booking.class);
-        Integer bookingId = context.getLastResponse().jsonPath().getInt("bookingid");
+        Integer bookingId = BookingMapper.bookingIdFromResponse(context.getLastResponse());
         assertThat(bookingId, notNullValue());
         assertThat(created.getFirstname(), equalTo("Jim"));
         assertThat(created.getLastname(), equalTo("Brown"));

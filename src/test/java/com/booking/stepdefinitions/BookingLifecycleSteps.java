@@ -31,7 +31,7 @@ public class BookingLifecycleSteps {
     public void aBookingExists() {
         Booking booking = aBooking().build();
         Response response = bookingApiClient.create(booking);
-        context.setCreatedBookingId(response.jsonPath().getInt("bookingid"));
+        context.setCreatedBookingId(BookingMapper.bookingIdFromResponse(response));
         context.setCreatedBooking(booking);
     }
 
