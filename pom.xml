@@ -152,7 +152,6 @@
                             <generateBuilders>true</generateBuilders>
                             <includeAdditionalProperties>false</includeAdditionalProperties>
                             <addCompileSourceRoot>false</addCompileSourceRoot>
-                            <addTestCompileSourceRoot>false</addTestCompileSourceRoot>
                         </configuration>
                     </execution>
                 </executions>
